@@ -1,6 +1,5 @@
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -28,7 +27,7 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-  var spent = 12545.10;
+  var spent = 1250.10;
   void getNext() {
     current = WordPair.random();
     notifyListeners();
@@ -49,6 +48,36 @@ class MyAppState extends ChangeNotifier {
     favorites.remove(favorite);
     notifyListeners();
   }
+
+  var categories = <Category>[];
+
+  void addCategory(name) {
+    categories.add(Category(name, 0, []));
+    notifyListeners();
+  }
+}
+
+class Category {
+  String label;
+  List<Product> products;
+  int value;
+
+  Category(this.label, this.value, this.products);
+
+  // Metoda
+  void setValue() {
+    value = 0;
+    for (var product in products) {
+      value += product.value;
+    }
+  }
+}
+
+class Product {
+  String name;
+  int value;
+
+  Product(this.name, this.value);
 }
 
 class MyHomePage extends StatefulWidget {
@@ -66,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         page = SpentPage();
       case 1:
-        page = FavoritesPage();
+        page = SpendingsPage();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -80,11 +109,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 destinations: [
                   NavigationRailDestination(
                     icon: Icon(Icons.home),
-                    label: Text('Home'),
+                    label: Text('Podsumowanie'),
                   ),
                   NavigationRailDestination(
-                    icon: Icon(Icons.favorite),
-                    label: Text('Favorites'),
+                    icon: Icon(Icons.list),
+                    label: Text('Kategorie'),
                   ),
                 ],
                 selectedIndex: selectedIndex,
@@ -126,11 +155,9 @@ class SpentPage extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.spaceBetween, // Przestrzeń między elementami
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Column(
-              // Dodatkowy Column dla elementów górnych
               children: [
                 Builder(builder: (context) {
                   double fontSize = screenWidth * 0.05;
@@ -196,61 +223,101 @@ class SpentPage extends StatelessWidget {
   }
 }
 
-class FavoritesPage extends StatelessWidget {
+class SpendingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+    double screenWidth = MediaQuery.of(context).size.width;
 
-    if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet.'),
+    Future<void> showAddCategoryDialog(BuildContext context) async {
+      final TextEditingController controller = TextEditingController();
+      final FocusNode focusNode = FocusNode(); // Dodaj FocusNode
+
+      await showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text('Dodaj kategorię'),
+            content: TextField(
+              controller: controller,
+              focusNode: focusNode, // Użyj FocusNode
+              decoration: const InputDecoration(
+                hintText: 'Wprowadź nazwę kategorii',
+              ),
+              autofocus: true, // Ustaw autofocus, aby od razu aktywować pole
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('Anuluj'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final categoryName = controller.text.trim();
+                  if (categoryName.isEmpty) {
+                    // Wyświetl błąd w dialogu lub konsoli
+                    print('Nazwa kategorii nie może być pusta');
+                    return;
+                  }
+
+                  try {
+                    // Dodanie kategorii
+                    context.read<MyAppState>().addCategory(categoryName);
+                    Navigator.of(dialogContext).pop();
+                  } catch (e, stackTrace) {
+                    // Logowanie błędu
+                    print('Błąd: $e');
+                    print('Stack trace: $stackTrace');
+                    Navigator.of(dialogContext).pop();
+                  }
+                },
+                child: const Text('Dodaj'),
+              ),
+            ],
+          );
+        },
       );
     }
+
+    if (appState.categories.isEmpty) {
+      return Center(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+              child: Text('Nie masz jeszcze żadnych kategorii.'),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+              onPressed: () {
+                showAddCategoryDialog(context); // Przekaż kontekst
+              },
+              child: Icon(Icons.add, size: screenWidth * 0.08),
+            )
+          ],
+        ),
+      );
+    }
+
     return ListView(
       children: [
         Padding(
           padding: const EdgeInsets.all(20),
-          child: Text('You have '
-              '${appState.favorites.length} favorites:'),
+          child: Text('Masz ${appState.categories.length} kategorii:'),
         ),
-        for (var pair in appState.favorites)
+        for (var category in appState.categories)
           ListTile(
-            onTap: () {
-              appState.removeFavorites(pair);
-            },
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
+            title: Text(category.products.isNotEmpty
+                ? category.products[0].name
+                : 'Kategoria bez produktów'),
+            subtitle: Text('Wartość: ${category.value}'),
           ),
       ],
-    );
-  }
-}
-
-class BigCard extends StatelessWidget {
-  const BigCard({
-    super.key,
-    required this.pair,
-  });
-
-  final WordPair pair;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
-    );
-    return Card(
-      elevation: 5,
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          pair.asLowerCase,
-          style: style,
-          semanticsLabel: "${pair.first} ${pair.second}",
-        ),
-      ),
     );
   }
 }
