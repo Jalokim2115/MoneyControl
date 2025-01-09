@@ -1,5 +1,5 @@
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
+import 'package:english_words/english_words.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -16,9 +16,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Namer App',
         theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
-        ),
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+            dividerColor: Colors.transparent),
         home: MyHomePage(),
       ),
     );
@@ -27,7 +27,8 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-  var spent = 1250.10;
+  double spent = 0;
+
   void getNext() {
     current = WordPair.random();
     notifyListeners();
@@ -55,16 +56,66 @@ class MyAppState extends ChangeNotifier {
     categories.add(Category(name, 0, []));
     notifyListeners();
   }
+
+  void addProductToCategory(
+      Category category, String productName, double value) {
+    category.products.add(Product(productName, value));
+    category.setValue();
+    spentSetValue();
+    notifyListeners();
+  }
+
+  void removeProduct(Category category, Product product) {
+    category.products.remove(product);
+    category.setValue();
+    spentSetValue();
+    notifyListeners();
+  }
+
+  void resetProduct(Category category, Product product) {
+    product.resetValue();
+    category.setValue();
+    spentSetValue();
+    notifyListeners();
+  }
+
+  void spentSetValue() {
+    spent = 0;
+    for (Category category in categories) {
+      spent += category.value;
+    }
+  }
+
+  void removeCategory(Category category) {
+    categories.remove(category);
+    spentSetValue();
+    notifyListeners();
+  }
+
+  void resetCategory(Category category) {
+    for (Product product in category.products) {
+      product.value = 0;
+    }
+    category.value = 0;
+    spentSetValue();
+    notifyListeners();
+  }
+
+  void addProductValue(category, product, value) {
+    product.setValue(value);
+    category.setValue();
+    spentSetValue();
+    notifyListeners();
+  }
 }
 
 class Category {
   String label;
   List<Product> products;
-  int value;
+  double value;
 
   Category(this.label, this.value, this.products);
 
-  // Metoda
   void setValue() {
     value = 0;
     for (var product in products) {
@@ -75,9 +126,17 @@ class Category {
 
 class Product {
   String name;
-  int value;
+  double value;
 
   Product(this.name, this.value);
+
+  void setValue(int cena) {
+    value += cena;
+  }
+
+  void resetValue() {
+    value = 0;
+  }
 }
 
 class MyHomePage extends StatefulWidget {
@@ -96,9 +155,12 @@ class _MyHomePageState extends State<MyHomePage> {
         page = SpentPage();
       case 1:
         page = SpendingsPage();
+      case 2:
+        page = Settings();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
+
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
         body: Row(
@@ -114,6 +176,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   NavigationRailDestination(
                     icon: Icon(Icons.list),
                     label: Text('Kategorie'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.settings),
+                    label: Text('Ustawienia'),
                   ),
                 ],
                 selectedIndex: selectedIndex,
@@ -141,15 +207,7 @@ class SpentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    var pair = appState.current;
     double screenWidth = MediaQuery.of(context).size.width;
-
-    IconData icon;
-    if (appState.favorites.contains(pair)) {
-      icon = Icons.favorite;
-    } else {
-      icon = Icons.favorite_border;
-    }
 
     return Center(
       child: Padding(
@@ -162,7 +220,7 @@ class SpentPage extends StatelessWidget {
                 Builder(builder: (context) {
                   double fontSize = screenWidth * 0.05;
                   return Text(
-                    "W tym miesiacu wydales:",
+                    "W tym miesiącu wydałeś:",
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontFamily: 'Sans',
@@ -176,19 +234,17 @@ class SpentPage extends StatelessWidget {
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.secondary,
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.secondary,
-                        width: 2.0,
-                      ),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: Text(appState.spent.toString(),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSecondary,
-                          fontFamily: 'Sans',
-                          fontWeight: FontWeight.bold,
-                          fontSize: fontSize,
-                        )),
+                    child: Text(
+                      "${appState.spent.toString()} zł",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSecondary,
+                        fontFamily: 'Sans',
+                        fontWeight: FontWeight.bold,
+                        fontSize: fontSize,
+                      ),
+                    ),
                   );
                 }),
               ],
@@ -200,18 +256,19 @@ class SpentPage extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: () {
-                      appState.toggleFavorites();
-                    },
-                    icon: Icon(icon),
-                    label: Text('Like'),
+                    onPressed: () {},
+                    label: Text('placeholder'),
                   ),
                   Spacer(),
                   ElevatedButton(
                     onPressed: () {
-                      appState.getNext();
+                      for (Category category in appState.categories) {
+                        for (Product product in category.products) {
+                          appState.resetProduct(category, product);
+                        }
+                      }
                     },
-                    child: Text('Next'),
+                    child: Text('Zresetuj koszta'),
                   ),
                 ],
               ),
@@ -227,54 +284,51 @@ class SpendingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    double screenWidth = MediaQuery.of(context).size.width;
 
-    Future<void> showAddCategoryDialog(BuildContext context) async {
-      final TextEditingController controller = TextEditingController();
-      final FocusNode focusNode = FocusNode(); // Dodaj FocusNode
+    void showAddProductDialog(Category category) async {
+      final TextEditingController nameController = TextEditingController();
+      final TextEditingController valueController = TextEditingController();
 
       await showDialog(
         context: context,
         barrierDismissible: true,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-            title: const Text('Dodaj kategorię'),
-            content: TextField(
-              controller: controller,
-              focusNode: focusNode, // Użyj FocusNode
-              decoration: const InputDecoration(
-                hintText: 'Wprowadź nazwę kategorii',
-              ),
-              autofocus: true, // Ustaw autofocus, aby od razu aktywować pole
+            title: Text('Dodaj produkt do kategorii "${category.label}"'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: 'Nazwa produktu'),
+                ),
+                TextField(
+                  controller: valueController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: 'Wartość produktu'),
+                ),
+              ],
             ),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(dialogContext).pop();
                 },
-                child: const Text('Anuluj'),
+                child: Text('Anuluj'),
               ),
               TextButton(
                 onPressed: () {
-                  final categoryName = controller.text.trim();
-                  if (categoryName.isEmpty) {
-                    // Wyświetl błąd w dialogu lub konsoli
-                    print('Nazwa kategorii nie może być pusta');
-                    return;
-                  }
+                  final productName = nameController.text.trim();
+                  final productValue =
+                      double.tryParse(valueController.text) ?? 0;
 
-                  try {
-                    // Dodanie kategorii
-                    context.read<MyAppState>().addCategory(categoryName);
-                    Navigator.of(dialogContext).pop();
-                  } catch (e, stackTrace) {
-                    // Logowanie błędu
-                    print('Błąd: $e');
-                    print('Stack trace: $stackTrace');
-                    Navigator.of(dialogContext).pop();
+                  if (productName.isNotEmpty && productValue > 0) {
+                    context.read<MyAppState>().addProductToCategory(
+                        category, productName, productValue);
                   }
+                  Navigator.of(dialogContext).pop();
                 },
-                child: const Text('Dodaj'),
+                child: Text('Dodaj'),
               ),
             ],
           );
@@ -282,42 +336,186 @@ class SpendingsPage extends StatelessWidget {
       );
     }
 
-    if (appState.categories.isEmpty) {
-      return Center(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-              child: Text('Nie masz jeszcze żadnych kategorii.'),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            ElevatedButton(
-              onPressed: () {
-                showAddCategoryDialog(context); // Przekaż kontekst
-              },
-              child: Icon(Icons.add, size: screenWidth * 0.08),
-            )
-          ],
-        ),
-      );
-    }
-
     return ListView(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text('Masz ${appState.categories.length} kategorii:'),
-        ),
         for (var category in appState.categories)
-          ListTile(
-            title: Text(category.products.isNotEmpty
-                ? category.products[0].name
-                : 'Kategoria bez produktów'),
-            subtitle: Text('Wartość: ${category.value}'),
+          Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondary,
+              borderRadius: BorderRadius.circular(25.0),
+            ),
+            child: ExpansionTile(
+              maintainState: true,
+              textColor: Theme.of(context).colorScheme.onSecondary,
+              collapsedTextColor: Theme.of(context).colorScheme.onSecondary,
+              collapsedBackgroundColor: Theme.of(context).colorScheme.secondary,
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              showTrailingIcon: false,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(category.label),
+                  Spacer(),
+                  IconButton(
+                    icon: Icon(
+                      Icons.add,
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
+                    onPressed: () {
+                      showAddProductDialog(category);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.replay,
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
+                    onPressed: () {
+                      appState.resetCategory(category);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.delete,
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
+                    onPressed: () {
+                      appState.removeCategory(category);
+                    },
+                  ),
+                ],
+              ),
+              subtitle: Text('Wartość: ${category.value} zł'),
+              children: [
+                for (var product in category.products)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                    child: ListTile(
+                      onTap: () async {
+                        final value = await showDialog<int>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            int? enteredValue;
+                            return AlertDialog(
+                              title: Text('Wpisz wartość'),
+                              content: TextField(
+                                keyboardType: TextInputType.number,
+                                decoration:
+                                    InputDecoration(hintText: 'Wartość'),
+                                onChanged: (val) {
+                                  enteredValue = int.tryParse(val);
+                                },
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, null);
+                                  },
+                                  child: Text('Anuluj'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, enteredValue);
+                                  },
+                                  child: Text('Dodaj'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        if (value != null) {
+                          appState.addProductValue(category, product, value);
+                        }
+                      },
+                      textColor: Theme.of(context).colorScheme.onSecondary,
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              product.name,
+                              style: TextStyle(fontSize: 15),
+                            ),
+                          ),
+                          Text(
+                            '${product.value} zł',
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          SizedBox(width: 10),
+                          IconButton(
+                            icon: Icon(
+                              Icons.replay,
+                              color: Theme.of(context).colorScheme.onSecondary,
+                            ),
+                            onPressed: () {
+                              appState.resetProduct(category, product);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.delete,
+                              color: Theme.of(context).colorScheme.onSecondary,
+                            ),
+                            onPressed: () {
+                              appState.removeProduct(category, product);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
+        ListTile(
+          title: ElevatedButton(
+            onPressed: () {
+              final TextEditingController controller = TextEditingController();
+
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) {
+                  return AlertDialog(
+                    title: Text('Dodaj kategorię'),
+                    content: TextField(
+                      controller: controller,
+                      decoration: InputDecoration(hintText: 'Nazwa kategorii'),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: Text('Anuluj'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          final categoryName = controller.text.trim();
+                          if (categoryName.isNotEmpty) {
+                            appState.addCategory(categoryName);
+                          }
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: Text('Dodaj'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: Text('Dodaj kategorię'),
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class Settings extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text("Tu będą ustawienia"),
     );
   }
 }
