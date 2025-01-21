@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:english_words/english_words.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -102,6 +103,12 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearAll() {
+    categories = [];
+    spentSetValue();
+    notifyListeners();
+  }
+
   Future<void> saveState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -116,6 +123,7 @@ class MyAppState extends ChangeNotifier {
                 'value': product.value,
               };
             }).toList(),
+            // ignore: deprecated_member_use
             'color': category.color.value,
           };
         }).toList(),
@@ -412,6 +420,7 @@ class SpendingsPage extends StatelessWidget {
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // ignore: sized_box_for_whitespace
                     Container(
                       width: screenWidth * 0.5,
                       child: Text(
@@ -496,6 +505,7 @@ class SpendingsPage extends StatelessWidget {
                         title: Row(
                           children: [
                             Expanded(
+                              // ignore: sized_box_for_whitespace
                               child: Container(
                                 width: screenWidth * 0.5,
                                 child: Text(
@@ -569,12 +579,11 @@ class SpendingsPage extends StatelessWidget {
                               pickerColor: selectedColor,
                               onColorChanged: (color) {
                                 setState(() {
-                                  selectedColor =
-                                      color; // Zaktualizowanie wybranego koloru
+                                  selectedColor = color;
                                 });
                               },
-                              enableAlpha:
-                                  true, // Pozwala wybrać przezroczystość
+                              enableAlpha: false,
+                              showLabel: false,
                             ),
                           ],
                         ),
@@ -614,8 +623,34 @@ class SpendingsPage extends StatelessWidget {
 class Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    double screenWidth = MediaQuery.of(context).size.width;
     return Center(
-      child: Text("Tu będą ustawienia"),
+      child: GestureDetector(
+        onTap: () async {
+          await appState.clearSavedState();
+          appState.clearAll();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Color(0xFFff6b6b),
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          width: screenWidth * 0.25,
+          height: screenWidth * 0.15,
+          child: Center(
+            child: Text(
+              "Usuń Dane",
+              style: TextStyle(
+                fontFamily: 'Sans',
+                fontWeight: FontWeight.bold,
+                fontSize: screenWidth * 0.03,
+                color: Colors.black, // Kolor tekstu (np. biały)
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
