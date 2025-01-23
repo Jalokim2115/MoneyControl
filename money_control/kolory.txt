@@ -1,0 +1,12 @@
+Theme.of(context).colorScheme.primaryContainer, // tlo
+Theme.of(context).colorScheme.onPrimaryContainer, // napis na tle
+Theme.of(context).colorScheme.secondary, // tlo elementu
+Theme.of(context).colorScheme.onSecondary, // napis na elemencie
+Color(0xFF448AFF)
+Color(0xFF000000)
+Color(0xFF3039DB)
+
+    Color onPrimary = appState.onPrimary;
+    Color primary = appState.primary;
+    Color onSecondary = appState.onSecondary;
+    Color secondary = appState.secondary;

@@ -26,10 +26,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Namer App',
-      theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
-          dividerColor: Colors.transparent),
+      theme: ThemeData(useMaterial3: true, dividerColor: Colors.transparent),
       home: MyHomePage(),
     );
   }
@@ -37,8 +34,21 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   double spent = 0;
+  var primary = Color(0xFF448AFF);
+  var onPrimary = Color(0xFF000000);
+  var secondary = Color(0xFF3039DB);
+  var onSecondary = Color(0xFF000000);
 
   var categories = <Category>[];
+
+  void changeTheme(Color newPrimary, Color newOnPrimary, Color newSecondary,
+      Color newOnSecondary) {
+    primary = newPrimary;
+    onPrimary = newOnPrimary;
+    secondary = newSecondary;
+    onSecondary = newOnSecondary;
+    notifyListeners();
+  }
 
   void addCategory(name, color) {
     categories.add(Category(name, 0, [], color));
@@ -216,6 +226,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     Widget page;
+    var appState = context.watch<MyAppState>();
+    Color primary = appState.primary;
     switch (selectedIndex) {
       case 0:
         page = SpentPage();
@@ -233,7 +245,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             Expanded(
               child: Container(
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: primary,
                 child: page,
               ),
             ),
@@ -271,7 +283,9 @@ class SpentPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     double screenWidth = MediaQuery.of(context).size.width;
-
+    Color onPrimary = appState.onPrimary;
+    Color onSecondary = appState.onSecondary;
+    Color secondary = appState.secondary;
     return Center(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -285,7 +299,7 @@ class SpentPage extends StatelessWidget {
                   return Text(
                     "W tym miesiącu wydałeś:",
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      color: onPrimary,
                       fontFamily: 'Sans',
                       fontSize: fontSize,
                     ),
@@ -296,13 +310,13 @@ class SpentPage extends StatelessWidget {
                   return Container(
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: secondary,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Text(
                       "${appState.spent.toString()} zł",
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSecondary,
+                        color: onSecondary,
                         fontFamily: 'Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: fontSize,
@@ -348,6 +362,9 @@ class SpendingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     double screenWidth = MediaQuery.of(context).size.width;
+    Color onSecondary = appState.onSecondary;
+    Color secondary = appState.secondary;
+
     void showAddProductDialog(Category category) async {
       final TextEditingController nameController = TextEditingController();
       final TextEditingController valueController = TextEditingController();
@@ -412,8 +429,8 @@ class SpendingsPage extends StatelessWidget {
               ),
               child: ExpansionTile(
                 maintainState: true,
-                textColor: Theme.of(context).colorScheme.onSecondary,
-                collapsedTextColor: Theme.of(context).colorScheme.onSecondary,
+                textColor: onSecondary,
+                collapsedTextColor: onSecondary,
                 collapsedBackgroundColor: category.color,
                 backgroundColor: category.color,
                 showTrailingIcon: false,
@@ -433,7 +450,7 @@ class SpendingsPage extends StatelessWidget {
                     IconButton(
                       icon: Icon(
                         Icons.add,
-                        color: Theme.of(context).colorScheme.onSecondary,
+                        color: onSecondary,
                       ),
                       onPressed: () {
                         showAddProductDialog(category);
@@ -442,7 +459,7 @@ class SpendingsPage extends StatelessWidget {
                     IconButton(
                       icon: Icon(
                         Icons.replay,
-                        color: Theme.of(context).colorScheme.onSecondary,
+                        color: onSecondary,
                       ),
                       onPressed: () {
                         appState.resetCategory(category);
@@ -451,7 +468,7 @@ class SpendingsPage extends StatelessWidget {
                     IconButton(
                       icon: Icon(
                         Icons.delete,
-                        color: Theme.of(context).colorScheme.onSecondary,
+                        color: onSecondary,
                       ),
                       onPressed: () {
                         appState.removeCategory(category);
@@ -501,7 +518,7 @@ class SpendingsPage extends StatelessWidget {
                             appState.addProductValue(category, product, value);
                           }
                         },
-                        textColor: Theme.of(context).colorScheme.onSecondary,
+                        textColor: onSecondary,
                         title: Row(
                           children: [
                             Expanded(
@@ -524,8 +541,7 @@ class SpendingsPage extends StatelessWidget {
                             IconButton(
                               icon: Icon(
                                 Icons.replay,
-                                color:
-                                    Theme.of(context).colorScheme.onSecondary,
+                                color: onSecondary,
                               ),
                               onPressed: () {
                                 appState.resetProduct(category, product);
@@ -534,8 +550,7 @@ class SpendingsPage extends StatelessWidget {
                             IconButton(
                               icon: Icon(
                                 Icons.delete,
-                                color:
-                                    Theme.of(context).colorScheme.onSecondary,
+                                color: onSecondary,
                               ),
                               onPressed: () {
                                 appState.removeProduct(category, product);
@@ -553,8 +568,7 @@ class SpendingsPage extends StatelessWidget {
           title: ElevatedButton(
             onPressed: () {
               final TextEditingController controller = TextEditingController();
-              Color selectedColor =
-                  Theme.of(context).colorScheme.secondary; // Domyślny kolor
+              Color selectedColor = secondary; // Domyślny kolor
 
               showDialog(
                 context: context,
@@ -583,6 +597,7 @@ class SpendingsPage extends StatelessWidget {
                                 });
                               },
                               enableAlpha: false,
+                              // ignore: deprecated_member_use
                               showLabel: false,
                             ),
                           ],
@@ -626,29 +641,217 @@ class Settings extends StatelessWidget {
     var appState = context.watch<MyAppState>();
     double screenWidth = MediaQuery.of(context).size.width;
     return Center(
-      child: GestureDetector(
-        onTap: () async {
-          await appState.clearSavedState();
-          appState.clearAll();
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: Color(0xFFff6b6b),
-            borderRadius: BorderRadius.circular(15.0),
-          ),
-          width: screenWidth * 0.25,
-          height: screenWidth * 0.15,
-          child: Center(
-            child: Text(
-              "Usuń Dane",
-              style: TextStyle(
-                fontFamily: 'Sans',
-                fontWeight: FontWeight.bold,
-                fontSize: screenWidth * 0.03,
-                color: Colors.black, // Kolor tekstu (np. biały)
-              ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    appState.changeTheme(Color(0xFFD8E3FE), Color(0xFF000000),
+                        Color(0xFFa3afd8), Color(0xFF000000));
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Color(0xFFD8E3FE),
+                        borderRadius: BorderRadius.circular(15.0),
+                        border: Border.all(color: Colors.black, width: 1)),
+                    width: screenWidth * 0.25,
+                    height: screenWidth * 0.15,
+                    child: Center(
+                      child: Text(
+                        "Niebieski",
+                        style: TextStyle(
+                          fontFamily: 'Sans',
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.03,
+                          color: Colors.black, // Kolor tekstu (np. biały)
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 15,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
+                        Color(0xFF3039DB), Color(0xFF000000));
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Color(0xFFACF5E8),
+                        borderRadius: BorderRadius.circular(15.0),
+                        border: Border.all(color: Colors.black, width: 1)),
+                    width: screenWidth * 0.25,
+                    height: screenWidth * 0.15,
+                    child: Center(
+                      child: Text(
+                        "Turkusowy",
+                        style: TextStyle(
+                          fontFamily: 'Sans',
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.03,
+                          color: Colors.black, // Kolor tekstu (np. biały)
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 15,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
+                        Color(0xFF3039DB), Color(0xFF000000));
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Color(0xFFFED9DE),
+                        borderRadius: BorderRadius.circular(15.0),
+                        border: Border.all(color: Colors.black, width: 1)),
+                    width: screenWidth * 0.25,
+                    height: screenWidth * 0.15,
+                    child: Center(
+                      child: Text(
+                        "Różowy",
+                        style: TextStyle(
+                          fontFamily: 'Sans',
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.03,
+                          color: Colors.black, // Kolor tekstu (np. biały)
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
+            SizedBox(
+              height: 15,
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
+                        Color(0xFF3039DB), Color(0xFF000000));
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Color(0xFFCCECA5),
+                        borderRadius: BorderRadius.circular(15.0),
+                        border: Border.all(color: Colors.black, width: 1)),
+                    width: screenWidth * 0.25,
+                    height: screenWidth * 0.15,
+                    child: Center(
+                      child: Text(
+                        "Zielony",
+                        style: TextStyle(
+                          fontFamily: 'Sans',
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.03,
+                          color: Colors.black, // Kolor tekstu (np. biały)
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 15,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
+                        Color(0xFF3039DB), Color(0xFF000000));
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Color(0xFFF1E48A),
+                        borderRadius: BorderRadius.circular(15.0),
+                        border: Border.all(color: Colors.black, width: 1)),
+                    width: screenWidth * 0.25,
+                    height: screenWidth * 0.15,
+                    child: Center(
+                      child: Text(
+                        "Żółty",
+                        style: TextStyle(
+                          fontFamily: 'Sans',
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.03,
+                          color: Colors.black, // Kolor tekstu (np. biały)
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 15,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
+                        Color(0xFF3039DB), Color(0xFF000000));
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Color(0xFFEADDFE),
+                        borderRadius: BorderRadius.circular(15.0),
+                        border: Border.all(color: Colors.black, width: 1)),
+                    width: screenWidth * 0.25,
+                    height: screenWidth * 0.15,
+                    child: Center(
+                      child: Text(
+                        "Fioletowy",
+                        style: TextStyle(
+                          fontFamily: 'Sans',
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.03,
+                          color: Colors.black, // Kolor tekstu (np. biały)
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Spacer(),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    await appState.clearSavedState();
+                    appState.clearAll();
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFff6b6b),
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    width: screenWidth * 0.25,
+                    height: screenWidth * 0.15,
+                    child: Center(
+                      child: Text(
+                        "Usuń Dane",
+                        style: TextStyle(
+                          fontFamily: 'Sans',
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.03,
+                          color: Colors.black, // Kolor tekstu (np. biały)
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
