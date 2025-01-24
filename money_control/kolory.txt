@@ -10,3 +10,5 @@ Color(0xFF3039DB)
     Color primary = appState.primary;
     Color onSecondary = appState.onSecondary;
     Color secondary = appState.secondary;
+
+    niebieski - Color(0xFFD8E3FE), Color(0xFF000000),Color(0xFF5d626c), Color(0xFFFFFFFF)

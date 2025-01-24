@@ -34,10 +34,10 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   double spent = 0;
-  var primary = Color(0xFF448AFF);
+  var primary = Color(0xFFD8E3FE);
   var onPrimary = Color(0xFF000000);
-  var secondary = Color(0xFF3039DB);
-  var onSecondary = Color(0xFF000000);
+  var secondary = Color(0xFF5d626c);
+  var onSecondary = Color(0xFFFFFFFF);
 
   var categories = <Category>[];
 
@@ -253,7 +253,10 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: primary,
+        unselectedItemColor: appState.onSecondary,
         currentIndex: selectedIndex,
+        backgroundColor: appState.secondary,
         onTap: (int index) {
           setState(() {
             selectedIndex = index;
@@ -335,6 +338,10 @@ class SpentPage extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: () {},
                     label: Text('placeholder'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: appState.secondary,
+                      foregroundColor: appState.onSecondary,
+                    ),
                   ),
                   Spacer(),
                   ElevatedButton(
@@ -345,6 +352,10 @@ class SpentPage extends StatelessWidget {
                         }
                       }
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: appState.secondary,
+                      foregroundColor: appState.onSecondary,
+                    ),
                     child: Text('Zresetuj koszta'),
                   ),
                 ],
@@ -577,17 +588,24 @@ class SpendingsPage extends StatelessWidget {
                     // StatefulBuilder pozwala na dynamiczną aktualizację stanu w dialogu
                     builder: (context, setState) {
                       return AlertDialog(
-                        title: Text('Dodaj kategorię'),
+                        backgroundColor: secondary,
+                        title: Text(
+                          'Dodaj kategorię',
+                          style: TextStyle(color: onSecondary),
+                        ),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             TextField(
+                              cursorColor: onSecondary,
                               controller: controller,
-                              decoration:
-                                  InputDecoration(hintText: 'Nazwa kategorii'),
+                              decoration: InputDecoration(
+                                hintText: 'Nazwa kategorii',
+                              ),
                             ),
                             SizedBox(height: 20),
-                            Text('Wybierz kolor:'),
+                            Text('Wybierz kolor:',
+                                style: TextStyle(color: onSecondary)),
                             SizedBox(height: 10),
                             ColorPicker(
                               pickerColor: selectedColor,
@@ -607,6 +625,11 @@ class SpendingsPage extends StatelessWidget {
                             onPressed: () {
                               Navigator.of(dialogContext).pop();
                             },
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  appState.onPrimary, // Kolor tekstu
+                              backgroundColor: appState.primary, // Kolor tła
+                            ),
                             child: Text('Anuluj'),
                           ),
                           TextButton(
@@ -618,6 +641,11 @@ class SpendingsPage extends StatelessWidget {
                               }
                               Navigator.of(dialogContext).pop();
                             },
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  appState.onPrimary, // Kolor tekstu
+                              backgroundColor: appState.primary, // Kolor tła
+                            ),
                             child: Text('Dodaj'),
                           ),
                         ],
@@ -627,6 +655,10 @@ class SpendingsPage extends StatelessWidget {
                 },
               );
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: appState.secondary,
+              foregroundColor: appState.onSecondary,
+            ),
             child: Text('Dodaj kategorię'),
           ),
         ),
@@ -651,7 +683,7 @@ class Settings extends StatelessWidget {
                 GestureDetector(
                   onTap: () async {
                     appState.changeTheme(Color(0xFFD8E3FE), Color(0xFF000000),
-                        Color(0xFFa3afd8), Color(0xFF000000));
+                        Color(0xFF5d626c), Color(0xFFFFFFFF));
                   },
                   child: Container(
                     decoration: BoxDecoration(
