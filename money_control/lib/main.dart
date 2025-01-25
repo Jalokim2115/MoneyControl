@@ -24,9 +24,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<MyAppState>(context);
     return MaterialApp(
       title: 'Namer App',
-      theme: ThemeData(useMaterial3: true, dividerColor: Colors.transparent),
+      theme: ThemeData(
+        useMaterial3: true,
+        dividerColor: Colors.transparent,
+        colorScheme: ColorScheme.fromSeed(seedColor: appState.primary),
+      ),
       home: MyHomePage(),
     );
   }
@@ -385,18 +390,42 @@ class SpendingsPage extends StatelessWidget {
         barrierDismissible: true,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-            title: Text('Dodaj produkt do kategorii "${category.label}"'),
+            title: Text('Dodaj produkt do kategorii "${category.label}"',
+                style: TextStyle(color: onSecondary)),
+            backgroundColor: appState.secondary,
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
+                  cursorColor: onSecondary,
                   controller: nameController,
-                  decoration: InputDecoration(labelText: 'Nazwa produktu'),
+                  decoration: InputDecoration(
+                    hintText: 'Nazwa produktu',
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Colors
+                              .grey), // Kolor paska, gdy pole nie jest aktywne
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: appState.primary),
+                    ),
+                  ),
                 ),
                 TextField(
+                  cursorColor: onSecondary,
                   controller: valueController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Wartość produktu'),
+                  decoration: InputDecoration(
+                    hintText: 'Wartość produktu',
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Colors
+                              .grey), // Kolor paska, gdy pole nie jest aktywne
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: appState.primary),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -405,6 +434,10 @@ class SpendingsPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(dialogContext).pop();
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: appState.onPrimary, // Kolor tekstu
+                  backgroundColor: appState.primary, // Kolor tła
+                ),
                 child: Text('Anuluj'),
               ),
               TextButton(
@@ -419,6 +452,10 @@ class SpendingsPage extends StatelessWidget {
                   }
                   Navigator.of(dialogContext).pop();
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: appState.onPrimary, // Kolor tekstu
+                  backgroundColor: appState.primary, // Kolor tła
+                ),
                 child: Text('Dodaj'),
               ),
             ],
@@ -499,11 +536,26 @@ class SpendingsPage extends StatelessWidget {
                             builder: (BuildContext context) {
                               int? enteredValue;
                               return AlertDialog(
-                                title: Text('Wpisz wartość'),
+                                backgroundColor: appState.secondary,
+                                title: Text(
+                                  'Wpisz wartość',
+                                  style: TextStyle(color: onSecondary),
+                                ),
                                 content: TextField(
+                                  cursorColor: onSecondary,
                                   keyboardType: TextInputType.number,
-                                  decoration:
-                                      InputDecoration(hintText: 'Wartość'),
+                                  decoration: InputDecoration(
+                                    hintText: 'Wartość',
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors
+                                              .grey), // Kolor paska, gdy pole nie jest aktywne
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: appState.primary),
+                                    ),
+                                  ),
                                   onChanged: (val) {
                                     enteredValue = int.tryParse(val);
                                   },
@@ -513,12 +565,24 @@ class SpendingsPage extends StatelessWidget {
                                     onPressed: () {
                                       Navigator.pop(context, null);
                                     },
+                                    style: TextButton.styleFrom(
+                                      foregroundColor:
+                                          appState.onPrimary, // Kolor tekstu
+                                      backgroundColor:
+                                          appState.primary, // Kolor tła
+                                    ),
                                     child: Text('Anuluj'),
                                   ),
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pop(context, enteredValue);
                                     },
+                                    style: TextButton.styleFrom(
+                                      foregroundColor:
+                                          appState.onPrimary, // Kolor tekstu
+                                      backgroundColor:
+                                          appState.primary, // Kolor tła
+                                    ),
                                     child: Text('Dodaj'),
                                   ),
                                 ],
@@ -601,6 +665,15 @@ class SpendingsPage extends StatelessWidget {
                               controller: controller,
                               decoration: InputDecoration(
                                 hintText: 'Nazwa kategorii',
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors
+                                          .grey), // Kolor paska, gdy pole nie jest aktywne
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: appState.primary),
+                                ),
                               ),
                             ),
                             SizedBox(height: 20),
@@ -677,180 +750,188 @@ class Settings extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
         child: Column(
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    appState.changeTheme(Color(0xFFD8E3FE), Color(0xFF000000),
-                        Color(0xFF5d626c), Color(0xFFFFFFFF));
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color(0xFFD8E3FE),
-                        borderRadius: BorderRadius.circular(15.0),
-                        border: Border.all(color: Colors.black, width: 1)),
-                    width: screenWidth * 0.25,
-                    height: screenWidth * 0.15,
-                    child: Center(
-                      child: Text(
-                        "Niebieski",
-                        style: TextStyle(
-                          fontFamily: 'Sans',
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.03,
-                          color: Colors.black, // Kolor tekstu (np. biały)
+            Container(
+              decoration: BoxDecoration(
+                color: appState.secondary,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              width: screenWidth * 0.8,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            appState.changeTheme(
+                              Color(0xFFD8E3FE),
+                              Color(0xFF000000),
+                              Color(0xFF5d626c),
+                              Color(0xFFFFFFFF),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD8E3FE),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.15 / 2),
+                            ),
+                            width: screenWidth * 0.15,
+                            height: screenWidth * 0.15,
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 15,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
-                        Color(0xFF3039DB), Color(0xFF000000));
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color(0xFFACF5E8),
-                        borderRadius: BorderRadius.circular(15.0),
-                        border: Border.all(color: Colors.black, width: 1)),
-                    width: screenWidth * 0.25,
-                    height: screenWidth * 0.15,
-                    child: Center(
-                      child: Text(
-                        "Turkusowy",
-                        style: TextStyle(
-                          fontFamily: 'Sans',
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.03,
-                          color: Colors.black, // Kolor tekstu (np. biały)
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () async {
+                            appState.changeTheme(
+                              Color(0xFFD8E3FE),
+                              Color(0xFF000000),
+                              Color(0xFF5d626c),
+                              Color(0xFFFFFFFF),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD8E3FE),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.15 / 2),
+                            ),
+                            width: screenWidth * 0.15,
+                            height: screenWidth * 0.15,
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 15,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
-                        Color(0xFF3039DB), Color(0xFF000000));
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color(0xFFFED9DE),
-                        borderRadius: BorderRadius.circular(15.0),
-                        border: Border.all(color: Colors.black, width: 1)),
-                    width: screenWidth * 0.25,
-                    height: screenWidth * 0.15,
-                    child: Center(
-                      child: Text(
-                        "Różowy",
-                        style: TextStyle(
-                          fontFamily: 'Sans',
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.03,
-                          color: Colors.black, // Kolor tekstu (np. biały)
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () async {
+                            appState.changeTheme(
+                              Color(0xFFD8E3FE),
+                              Color(0xFF000000),
+                              Color(0xFF5d626c),
+                              Color(0xFFFFFFFF),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD8E3FE),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.15 / 2),
+                            ),
+                            width: screenWidth * 0.15,
+                            height: screenWidth * 0.15,
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
-                        Color(0xFF3039DB), Color(0xFF000000));
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color(0xFFCCECA5),
-                        borderRadius: BorderRadius.circular(15.0),
-                        border: Border.all(color: Colors.black, width: 1)),
-                    width: screenWidth * 0.25,
-                    height: screenWidth * 0.15,
-                    child: Center(
-                      child: Text(
-                        "Zielony",
-                        style: TextStyle(
-                          fontFamily: 'Sans',
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.03,
-                          color: Colors.black, // Kolor tekstu (np. biały)
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () async {
+                            appState.changeTheme(
+                              Color(0xFFD8E3FE),
+                              Color(0xFF000000),
+                              Color(0xFF5d626c),
+                              Color(0xFFFFFFFF),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD8E3FE),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.15 / 2),
+                            ),
+                            width: screenWidth * 0.15,
+                            height: screenWidth * 0.15,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                ),
-                SizedBox(
-                  width: 15,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
-                        Color(0xFF3039DB), Color(0xFF000000));
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color(0xFFF1E48A),
-                        borderRadius: BorderRadius.circular(15.0),
-                        border: Border.all(color: Colors.black, width: 1)),
-                    width: screenWidth * 0.25,
-                    height: screenWidth * 0.15,
-                    child: Center(
-                      child: Text(
-                        "Żółty",
-                        style: TextStyle(
-                          fontFamily: 'Sans',
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.03,
-                          color: Colors.black, // Kolor tekstu (np. biały)
+                    SizedBox(
+                      height: 15,
+                    ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            appState.changeTheme(
+                              Color(0xFFD8E3FE),
+                              Color(0xFF000000),
+                              Color(0xFF5d626c),
+                              Color(0xFFFFFFFF),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD8E3FE),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.15 / 2),
+                            ),
+                            width: screenWidth * 0.15,
+                            height: screenWidth * 0.15,
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 15,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    appState.changeTheme(Color(0xFF448AFF), Color(0xFF000000),
-                        Color(0xFF3039DB), Color(0xFF000000));
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color(0xFFEADDFE),
-                        borderRadius: BorderRadius.circular(15.0),
-                        border: Border.all(color: Colors.black, width: 1)),
-                    width: screenWidth * 0.25,
-                    height: screenWidth * 0.15,
-                    child: Center(
-                      child: Text(
-                        "Fioletowy",
-                        style: TextStyle(
-                          fontFamily: 'Sans',
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.03,
-                          color: Colors.black, // Kolor tekstu (np. biały)
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () async {
+                            appState.changeTheme(
+                              Color(0xFFD8E3FE),
+                              Color(0xFF000000),
+                              Color(0xFF5d626c),
+                              Color(0xFFFFFFFF),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD8E3FE),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.15 / 2),
+                            ),
+                            width: screenWidth * 0.15,
+                            height: screenWidth * 0.15,
+                          ),
                         ),
-                      ),
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () async {
+                            appState.changeTheme(
+                              Color(0xFFD8E3FE),
+                              Color(0xFF000000),
+                              Color(0xFF5d626c),
+                              Color(0xFFFFFFFF),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD8E3FE),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.15 / 2),
+                            ),
+                            width: screenWidth * 0.15,
+                            height: screenWidth * 0.15,
+                          ),
+                        ),
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () async {
+                            appState.changeTheme(
+                              Color(0xFFD8E3FE),
+                              Color(0xFF000000),
+                              Color(0xFF5d626c),
+                              Color(0xFFFFFFFF),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD8E3FE),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.15 / 2),
+                            ),
+                            width: screenWidth * 0.15,
+                            height: screenWidth * 0.15,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
             Spacer(),
             Row(
@@ -875,7 +956,7 @@ class Settings extends StatelessWidget {
                           fontFamily: 'Sans',
                           fontWeight: FontWeight.bold,
                           fontSize: screenWidth * 0.03,
-                          color: Colors.black, // Kolor tekstu (np. biały)
+                          color: Colors.black,
                         ),
                       ),
                     ),
